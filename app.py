@@ -15,13 +15,17 @@ def root():
 
 @app.route("/<platform>/", methods=['POST'])
 def show_platform(platform):
-    try:
+    data = get_insights(platform=platform)
+    generate_csv(data)
+    return 'success', 200
+
+    """ try:
         data = get_insights(platform=platform)
         generate_csv(data)
         return 'success', 200
     except Exception as e:
         error = e.args[0]
-        return error, 500
+        return error, 500 """
 
 @app.route("/<platform>/resumo")
 def show_platform_overview():

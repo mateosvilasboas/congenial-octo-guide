@@ -1,5 +1,5 @@
 import requests
-import csv
+import pandas as pd
 
 Headers = {'authorization': 'ProcessoSeletivoStract2025'}
 
@@ -13,7 +13,7 @@ def get_insights(platform):
     fields_q = ",".join(str(field["value"]) for field in fields)
     insights = []
 
-    for account in accounts:
+    for i, account in enumerate(accounts):
         response = requests.post(
             url='https://sidebar.stract.to/api/insights?platform={platform}&account={account}&token={token}&fields={fields_q}'.format(
                 platform=platform,
@@ -23,17 +23,13 @@ def get_insights(platform):
             ),
             headers=Headers
         )
-        
-        insights.extend(next(
-            iter(response.json().values()), None))
-        
-    insights_formatted = []
 
-    for i, insight in enumerate(insights):
-        insights_formatted.append({'Platform': platform})
-        insights_formatted[i].update(insight)
+        insights.append({
+            'Platform': platform,
+            'account': account['name']})
+        insights[i].update(response.json())
 
-    return insights_formatted
+    return insights
 
 def get_asset(platform, asset_type):
     session = requests.Session()
@@ -69,11 +65,21 @@ def get_asset(platform, asset_type):
     
     return content
 
-def generate_csv(data):
-    with open('data.csv', 'w') as f:
-        field_names = list(data[0].keys())
-        
-        writer = csv.DictWriter(f, fieldnames=field_names)
-        writer.writeheader()
-        writer.writerows(data)
+def generate_csv(mydict, summary=False):
+    df_final = pd.DataFrame()
+    for i, elem in enumerate(mydict):
+        if i == 0:
+            df = pd.DataFrame(columns=['Platform', 'account'] + list(elem['insights'][0].keys()))
+            
+        if summary:
+            for j, insight in enumerate(elem['insights']):
+                #todo: fazer soma do resumo
+                pass
 
+            df_final.to_csv("data.csv", header=True, index=False)
+        
+        for j, insight in enumerate(elem['insights']):
+            df.loc[len(df)] = [elem['Platform'], elem['account']] + list(insight.values())
+
+    df_final = pd.concat([df_final, df])
+    df_final.to_csv("data.csv", header=True, index=False)
