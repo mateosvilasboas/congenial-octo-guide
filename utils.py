@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import numpy as np
 
 Headers = {'authorization': 'ProcessoSeletivoStract2025'}
 
@@ -67,19 +68,23 @@ def get_asset(platform, asset_type):
 
 def generate_csv(mydict, summary=False):
     df_final = pd.DataFrame()
-    for i, elem in enumerate(mydict):
-        if i == 0:
-            df = pd.DataFrame(columns=['Platform', 'account'] + list(elem['insights'][0].keys()))
-            
-        if summary:
+
+    for i, elem in enumerate(mydict):           
+        if summary:  
+            df_temp = pd.DataFrame(elem['insights'], 
+                                    columns=list(mydict[i]['insights'][0].keys()))
+            sum_array = df_temp.sum(axis=0)
+            sum_array = sum_array.replace(r'.*', np.nan, regex=True)
+            sum_array = sum_array.to_list()
+            df_temp = pd.DataFrame(columns=['Platform', 'account'] + list(mydict[0]['insights'][0].keys()))
+            df_temp.loc[len(df_temp)] = [elem['Platform'], elem['account']] + sum_array
+
+        else:
+            df_temp = pd.DataFrame(columns=['Platform', 'account'] + list(mydict[0]['insights'][0].keys()))
             for j, insight in enumerate(elem['insights']):
-                #todo: fazer soma do resumo
-                pass
+                df_temp.loc[len(df_temp)] = [elem['Platform'], elem['account']] + list(insight.values())
 
-            df_final.to_csv("data.csv", header=True, index=False)
-        
-        for j, insight in enumerate(elem['insights']):
-            df.loc[len(df)] = [elem['Platform'], elem['account']] + list(insight.values())
+        df_final = pd.concat([df_final, df_temp])
 
-    df_final = pd.concat([df_final, df])
+    df_final = df_final.drop('id', axis=1)
     df_final.to_csv("data.csv", header=True, index=False)

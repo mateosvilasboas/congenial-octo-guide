@@ -15,26 +15,28 @@ def root():
 
 @app.route("/<platform>/", methods=['POST'])
 def show_platform(platform):
-    data = get_insights(platform=platform)
-    generate_csv(data)
-    return 'success', 200
-
-    """ try:
+    try:
         data = get_insights(platform=platform)
-        generate_csv(data)
+        generate_csv(data, summary=False)
         return 'success', 200
     except Exception as e:
         error = e.args[0]
-        return error, 500 """
+        return error, 500
 
-@app.route("/<platform>/resumo")
-def show_platform_overview():
-    pass
+@app.route("/<platform>/resumo", methods=['POST'])
+def show_platform_summary(platform):
+    try:
+        data = get_insights(platform=platform)
+        generate_csv(data, summary=True)
+        return 'success', 200
+    except Exception as e:
+        error = e.args[0]
+        return error, 500
 
 @app.route("/geral/")
 def show_all():
     pass
 
 @app.route("/geral/resumo")
-def show_all_overview():
+def show_all_summary():
     pass
