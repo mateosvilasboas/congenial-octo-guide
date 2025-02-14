@@ -17,10 +17,9 @@ Para iniciar o servidor em um terminal: `flask --app app --debug run`. O servido
 A aplicação conta com os seguintes endpoints:
 
 - `GET /geral/`: extrai dados de todas as plataformas de anúncios presentes na API e os salva em .csv (`data.csv`) na raiz do projeto
-- (TODO) `GET /geral/resumo/`: extrai dados de todas as plataformas de anúncios presentes na API, resumindo-os por plataforma e conta de cliente e os salva em .csv (`data.csv`) na raiz do projeto
+- `GET /geral/resumo/`: extrai dados de todas as plataformas de anúncios presentes na API, resumindo-os por plataforma e conta de cliente e os salva em .csv (`data.csv`) na raiz do projeto
 - `GET /<plataforma>/`: extrai dados da plataforma de anúnico presente na API e referida no endpoint e os salva em .csv (`data.csv`) na raiz do projeto
 - `GET /<plataforma/resumo/`: extrai dados da plataforma de anúncios presente na API, resumindo-os por conta de cliente e os salva em .csv (`data.csv`) na raiz do projeto
 
 ## Lista de melhorias posteriores
-- Tratar cada coluna numérica do .csv conforme seu tipo de dado (atualmente, todas as colunas estão como `float`)
 - Evitar a sobrescrição do arquivo `data.csv` anterior pelo mais atual.
