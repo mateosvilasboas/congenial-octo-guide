@@ -48,4 +48,15 @@ def show_all():
 
 @app.route("/geral/resumo")
 def show_all_summary():
-    pass
+    all_platforms = AllPlatformsLoader()
+    all_platforms.get_insights()
+    all_platforms.generate_csv(summary=True)
+    return 'success', 200
+    try:
+        all_platforms = AllPlatformsLoader()
+        all_platforms.get_insights()
+        all_platforms.generate_csv(summary=True)
+        return 'success', 200
+    except Exception as e:
+        error = e.args[0]
+        return error, 500

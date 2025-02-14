@@ -90,24 +90,29 @@ class PlatformLoader(Loader):
         df_final = pd.DataFrame()
 
         for i, elem in enumerate(self._mydict):           
-            if summary:  
-                df_temp = pd.DataFrame(elem['insights'], 
-                                        columns=list(self._mydict[i]['insights'][0].keys()))
-                sum_array = df_temp.sum(axis=0)
+            df_temp = pd.DataFrame.from_dict(elem, orient='columns')
+            df_insights = pd.json_normalize(df_temp['insights'])
 
+            if (not 'cpc' in df_insights
+                    and not 'cost_per_click' in df_insights):
+                cost = df_insights['cost']
+                clicks = df_insights['clicks']
+                df_insights['cost_per_click'] = cost.div(clicks, axis=0).round(decimals=3)
+                
+            if summary:
                 with pd.option_context('future.no_silent_downcasting', True):
-                    sum_array = sum_array.replace(r'.*', np.nan, regex=True).infer_objects(copy=False)
+                    df_insights = df_insights.replace(r'.*', '', regex=True).infer_objects(copy=False)
+                    df_insights['id'] = ''
 
-                sum_array = sum_array.to_list()
-                df_temp = pd.DataFrame(columns=['Platform', 'account'] + list(self._mydict[0]['insights'][0].keys()))
-                df_temp.loc[len(df_temp)] = [elem['Platform'], elem['account']] + sum_array
+                df_insights = df_insights.groupby([0]*len(df_insights)).sum()
 
+                df_temp = pd.DataFrame(columns=['Platform', 'account'])
+                df_temp.loc[len(df_temp)] = [elem['Platform'], elem['account']]
             else:
-                df_temp = pd.DataFrame(columns=['Platform', 'account'] + list(self._mydict[0]['insights'][0].keys()))
-                for j, insight in enumerate(elem['insights']):
-                    df_temp.loc[len(df_temp)] = [elem['Platform'], elem['account']] + list(insight.values())
+                df_temp = df_temp[['Platform', 'account']]
 
-            df_final = pd.concat([df_final, df_temp])
+            df_concat = pd.concat([df_temp, df_insights], axis=1)
+            df_final = pd.concat([df_final, df_concat])
 
         df_final.to_csv("data.csv", header=True, index=False)
 
@@ -146,8 +151,29 @@ class AllPlatformsLoader(Loader):
             for j, sub_elem in enumerate(elem):
                 df_temp = pd.DataFrame.from_dict(sub_elem, orient='columns')
                 df_insights = pd.json_normalize(df_temp['insights'])
-                df_temp = df_temp[['Platform', 'account']]
+
+                if (not 'cpc' in df_insights
+                        and not 'cost_per_click' in df_insights):
+                    cost = df_insights['cost']
+                    clicks = df_insights['clicks']
+                    df_insights['cost_per_click'] = cost.div(clicks, axis=0).round(decimals=3)
+                    
+                if summary:
+                    with pd.option_context('future.no_silent_downcasting', True):
+                        df_insights = df_insights.replace(r'.*', '', regex=True).infer_objects(copy=False)
+                        df_insights['id'] = ''
+
+                    df_insights = df_insights.groupby([0]*len(df_insights)).sum()
+
+                    df_temp = pd.DataFrame(columns=['Platform', 'account'])
+                    df_temp.loc[len(df_temp)] = [sub_elem['Platform'], sub_elem['account']]
+                else:
+                    df_temp = df_temp[['Platform', 'account']]
+
                 df_concat = pd.concat([df_temp, df_insights], axis=1)
                 df_final = pd.concat([df_final, df_concat])
 
         df_final.to_csv("data.csv", header=True, index=False)
+
+    def get_asset(self, platform, asset_type):
+        return super().get_asset(platform, asset_type)
