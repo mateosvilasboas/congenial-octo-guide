@@ -4,7 +4,7 @@ O objetivo desse projeto é ler e agregar dados de uma API de contas de anúncio
 
 ## Instalação
 
-Assumindo que você já tenha instalado `Python 3.10.12` em sua máquina, utilizando-se de um terminal:
+Assumindo que você já tenha instalado `Python 3.10.12` ou versão superior em sua máquina, utilizando-se de um terminal:
 
 1. Clone o projeto em uma pasta
 2. Crie um virtual enviroment para o projeto python: `python3 -m venv .venv`
